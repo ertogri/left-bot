@@ -1,4 +1,4 @@
-import ExtendedClient from "../ExtendedClient";
+import ExtendedClient from "../../structures/ExtendedClient";
 
 /**
  * Base class for handlers.

@@ -2,8 +2,9 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
+import CommandBase from "../../interfaces/base/CommandBase";
+import Embeds from "../../structures/Embeds";
 import ExtendedClient from "../../structures/ExtendedClient";
-import CommandBase from "../../structures/base/CommandBase";
 
 /**
  * Represents a command to retrieve the support server link.
@@ -38,7 +39,12 @@ class SupportServerCommand extends CommandBase {
   ): Promise<void> {
     // Reply to the interaction with the support server link
     await interaction.reply({
-      content: `Support Server, ${this.client.config.supportServerURL}`, // Set the reply content
+      embeds: [
+        Embeds.linkEmbed(
+          "Click and join the help server!",
+          this.client.config.supportServerURL,
+        ),
+      ],
     });
   }
 }

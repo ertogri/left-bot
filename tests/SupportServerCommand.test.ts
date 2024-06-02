@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from "dotenv";
 import SupportServerCommand from "../src/commands/general/SupportServerCommand";
+import Embeds from "../src/structures/Embeds"; // Embeds'i ekleyelim
 
 config({ path: ".env" });
 
@@ -23,7 +24,12 @@ describe("SupportServerCommand", () => {
     await supportServerCommand.execute(interaction);
 
     expect(interaction.reply).toHaveBeenCalledWith({
-      content: `Support Server, ${client.config.supportServerURL}`,
+      embeds: [
+        Embeds.linkEmbed(
+          "Click and join the help server!",
+          client.config.supportServerURL,
+        ),
+      ],
     });
   });
 });

@@ -9,9 +9,9 @@ import fs from "fs";
 import path from "path";
 import RegisterCommandsError from "../../errors/RegisterCommandsError";
 import IInteractionOptions from "../../interfaces/IInteractionHandler";
+import CommandBase from "../../interfaces/base/CommandBase";
+import HandlerBase from "../../interfaces/base/HandlerBase";
 import ExtendedClient from "../ExtendedClient";
-import CommandBase from "../base/CommandBase";
-import HandlerBase from "../base/HandlerBase";
 
 /**
  * The InteractionHandler class manages the interaction with commands.
