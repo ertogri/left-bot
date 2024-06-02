@@ -1,35 +1,57 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  ChatInputCommandInteraction,
+  InteractionReplyOptions,
+} from "discord.js";
 import { config } from "dotenv";
+import { MockProxy, mock } from "jest-mock-extended";
 import SupportServerCommand from "../src/commands/general/SupportServerCommand";
-import Embeds from "../src/structures/Embeds"; // Embeds'i ekleyelim
+import Embeds from "../src/structures/Embeds";
+import ExtendedClient from "../src/structures/ExtendedClient";
+import { PlayerManager } from "../src/structures/music/PlayerManager";
 
-config({ path: ".env" });
+config({ path: ".env.test" });
 
 describe("SupportServerCommand", () => {
-  it("should reply with the support server URL", async () => {
-    const client: any = {
-      config: {
+  let command: SupportServerCommand;
+  let client: MockProxy<ExtendedClient>;
+  let players: MockProxy<PlayerManager>;
+  let interaction: MockProxy<ChatInputCommandInteraction>;
+
+  beforeEach(() => {
+    client = mock<ExtendedClient>();
+    players = mock<PlayerManager>();
+    interaction = mock<ChatInputCommandInteraction>();
+
+    // Define readonly property config on the client mock
+    Object.defineProperty(client, "config", {
+      value: {
         supportServerURL: process.env.SUPPORT_SERVER_URL,
       },
-    };
+      writable: false,
+    });
 
-    const interaction: any = {
-      reply: jest.fn().mockResolvedValue(undefined),
-    };
+    command = new SupportServerCommand(client, players);
+  });
 
-    const supportServerCommand = new SupportServerCommand(
-      client,
+  it("should reply with the support server link", async () => {
+    // Arrange
+    const supportServerURL = process.env.SUPPORT_SERVER_URL;
+    const embed = Embeds.linkEmbed(
+      "Click and join the help server!",
+      supportServerURL,
     );
 
-    await supportServerCommand.execute(interaction);
+    const replyOptions: InteractionReplyOptions = {
+      embeds: [embed],
+      ephemeral: true,
+    };
 
-    expect(interaction.reply).toHaveBeenCalledWith({
-      embeds: [
-        Embeds.linkEmbed(
-          "Click and join the help server!",
-          client.config.supportServerURL,
-        ),
-      ],
-    });
+    // Act
+    await command.execute(interaction);
+
+    // Assert
+    expect(interaction.reply).toHaveBeenCalledWith(
+      replyOptions,
+    );
   });
 });

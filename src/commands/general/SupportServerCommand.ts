@@ -5,6 +5,7 @@ import {
 import CommandBase from "../../interfaces/base/CommandBase";
 import Embeds from "../../structures/Embeds";
 import ExtendedClient from "../../structures/ExtendedClient";
+import { PlayerManager } from "../../structures/music/PlayerManager";
 
 /**
  * Represents a command to retrieve the support server link.
@@ -20,9 +21,12 @@ class SupportServerCommand extends CommandBase {
    * Constructs a new SupportServerCommand instance.
    * @param client The ExtendedClient instance.
    */
-  public constructor(client: ExtendedClient) {
+  public constructor(
+    client: ExtendedClient,
+    players: PlayerManager,
+  ) {
     // Call the constructor of the base class (CommandBase)
-    super(client);
+    super(client, players);
 
     // Initialize the data field with a new SlashCommandBuilder instance
     this.data = new SlashCommandBuilder()
@@ -45,6 +49,7 @@ class SupportServerCommand extends CommandBase {
           this.client.config.supportServerURL,
         ),
       ],
+      ephemeral: true,
     });
   }
 }

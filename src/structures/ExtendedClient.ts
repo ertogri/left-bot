@@ -13,7 +13,6 @@ export default class ExtendedClient extends Client {
   // The config property holds additional configuration specific to the extended client.
   public readonly config: IExtendedClientConfig;
   private readonly InteractionHandler: InteractionHandler;
-
   /**
    * Constructs an instance of the ExtendedClient.
    * @param options Options for the Discord.js Client.

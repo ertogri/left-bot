@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   Collection,
   Events,
+  GuildMember,
   Interaction,
 } from "discord.js";
 import fs from "fs";
@@ -11,7 +12,9 @@ import RegisterCommandsError from "../../errors/RegisterCommandsError";
 import IInteractionOptions from "../../interfaces/IInteractionHandler";
 import CommandBase from "../../interfaces/base/CommandBase";
 import HandlerBase from "../../interfaces/base/HandlerBase";
+import Embeds from "../Embeds";
 import ExtendedClient from "../ExtendedClient";
+import { PlayerManager } from "../music/PlayerManager";
 
 /**
  * The InteractionHandler class manages the interaction with commands.
@@ -24,6 +27,7 @@ export default class InteractionHandler extends HandlerBase {
     CommandBase
   >;
   private readonly options: IInteractionOptions;
+  private readonly players: PlayerManager;
 
   /**
    * Constructs a new InteractionHandler instance.
@@ -40,6 +44,8 @@ export default class InteractionHandler extends HandlerBase {
     // Initialize the commands collection and options
     this.commands = new Collection();
     this.options = options;
+
+    this.players = new PlayerManager();
   }
 
   /**
@@ -81,7 +87,7 @@ export default class InteractionHandler extends HandlerBase {
               // Import and instantiate the command
               const command: CommandBase = new (
                 await import(filePath)
-              ).default(this.client);
+              ).default(this.client, this.players);
 
               // Add the command to the collection
               this.commands.set(command.data.name, command);
@@ -163,6 +169,46 @@ export default class InteractionHandler extends HandlerBase {
     );
   }
 
+  /**
+   * Checks if the member is in a voice channel.
+   * @param interaction The interaction object.
+   * @returns True if the member is in a voice channel, false otherwise.
+   */
+  private checkMemberVoiceChannel(
+    interaction: Interaction<CacheType>,
+  ): boolean {
+    const memberVoiceChannel = (
+      interaction.member as GuildMember
+    ).voice.channel;
+
+    return !!memberVoiceChannel;
+  }
+
+  /**
+   * Checks if the bot and the member are in the same voice channel.
+   * @param interaction The interaction object.
+   * @returns True if both are in the same voice channel, false otherwise.
+   */
+  private areInSameVoiceChannel(
+    interaction: Interaction<CacheType>,
+  ): boolean {
+    const meVoiceChannel =
+      interaction.guild?.members.me?.voice.channel;
+    const memberVoiceChannel = (
+      interaction.member as GuildMember
+    ).voice.channel;
+
+    if (meVoiceChannel) {
+      if (memberVoiceChannel?.id !== meVoiceChannel.id) {
+        if (meVoiceChannel.members.size === 1) {
+          return true;
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+
   //#region Events
 
   /**
@@ -179,6 +225,39 @@ export default class InteractionHandler extends HandlerBase {
     const command = this.commands.get(
       interaction.commandName,
     )!;
+
+    // Voice channel check
+    if (command.voiceChannel) {
+      //#region in member voice channel
+      const inMemberVoiceChannel =
+        this.checkMemberVoiceChannel(interaction);
+      if (!inMemberVoiceChannel) {
+        await interaction.reply({
+          embeds: [
+            Embeds.errorEmbed(
+              "You need to be in a voice channel to use this command.",
+            ),
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
+      //#endregion
+      const inAreInSameVoiceChannel =
+        this.areInSameVoiceChannel(interaction);
+
+      if (!inAreInSameVoiceChannel) {
+        await interaction.reply({
+          ephemeral: true,
+          embeds: [
+            Embeds.warnEmbed(
+              "You need to be in the same voice channel to use this command.",
+            ),
+          ],
+        });
+        return;
+      }
+    }
 
     try {
       // Execute the command

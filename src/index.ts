@@ -51,7 +51,10 @@ async function main(): Promise<void> {
   // Create a new instance of the ExtendedClient with provided client options and configuration.
   const client = new ExtendedClient(
     {
-      intents: [IntentsBitField.Flags.Guilds], // Specify the bot's intents (in this case, only Guilds).
+      intents: [
+        IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildVoiceStates,
+      ], // Specify the bot's intents (in this case, only Guilds).
     },
     {
       token: process.env.DISCORD_BOT_TOKEN, // Pass the Discord bot token from environment variables.
